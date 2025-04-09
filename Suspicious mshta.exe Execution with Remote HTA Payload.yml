@@ -1,0 +1,18 @@
+title: Suspicious mshta.exe Execution with Remote HTA Payload
+id: e01a0d95-ac80-48c5-b860-6ee3ccc662f5
+status: experimental
+description: Detects usage of mshta.exe to load a remote HTA file, a common technique used by attackers to execute payloads such as Metasploit stagers.
+logsource:
+  category: process_creation  
+  product: windows  
+ 
+detection:
+  selection:
+    Image|endswith: '\mshta.exe'  # Looks for processes using mshta.exe, which is commonly abused by attackers to run HTA payloads.
+    CommandLine|contains:
+      - 'http'  # Detects if the command line contains 'http', indicating that the HTA file is being loaded from a remote server.
+      - '.hta'  # Ensures the command line contains '.hta', meaning it’s an HTA file, which can be used to execute malicious payloads.
+  condition: selection  # The detection condition is met when both of the above criteria are true.
+falsepositives:
+  - Legitimate internal HTA tools (rare)  # Acknowledge that legitimate internal tools may also use mshta.exe with HTA files, though this is rare.
+level: high  # Set the alert level to high because executing remote HTA payloads is a serious threat and often part of a multi-step attack.

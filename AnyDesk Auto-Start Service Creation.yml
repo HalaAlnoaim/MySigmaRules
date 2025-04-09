@@ -1,0 +1,21 @@
+title: AnyDesk Auto-Start Service Creation  
+id: a4151e0a-ec45-4828-90c1-82fb7ee55261  
+description: Detects creation of a Windows service for AnyDesk with autostart enabled (either via raw StartType = 2 or visible message format).
+status: experimental
+logsource:  # Log source: Specifies where the logs should come from.
+  product: windows  
+  category: service_creation  # The rule is looking for events related to service creation in Windows.
+detection:  
+  selection_raw:  
+    EventID: 7045  # Looks for Event ID 7045, which indicates that a new service has been created.
+    StartType: 2  # It specifically looks for services with StartType = 2, which means auto-start.
+    ImagePath|contains: 'AnyDesk'  # Checks if the ImagePath (the path of the executable) contains 'AnyDesk'.
+  selection_visible:  
+    EventID: 7045  # Looks for Event ID 7045.
+    Message|contains:  # It checks if the log message contains specific strings.
+      - 'Service Start Type: auto start'  # Looks for the phrase indicating the service is set to auto-start.
+      - 'AnyDesk'  # Checks if 'AnyDesk' is mentioned in the message, indicating the software being used.
+  condition: selection_raw or selection_visible
+level: high  
+falsepositives:  
+  - Legitimate use of AnyDesk or other remote tools with auto-start configuration by IT team  

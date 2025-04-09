@@ -1,0 +1,20 @@
+title: Suspicious Obfuscated PowerShell Command
+id: 831d48a9-3d7c-447b-9e45-96324db7699f
+status: experimental
+description: Detects heavily obfuscated PowerShell commands often seen in attacks
+logsource:
+  category: process_creation  
+  product: windows  
+detection:
+  obfuscated:
+    Image|endswith: '\powershell.exe'  # Looks for PowerShell processes, as they are often used for executing commands in attacks.
+    CommandLine|contains:
+      - '`'  # The backtick (`) is commonly used for escaping characters or creating obfuscation in PowerShell.
+      - '+'  # The plus sign (+) is often used in PowerShell obfuscation to concatenate strings.
+      - 'iex'  # `iex` is shorthand for `Invoke-Expression`, which is commonly used to execute PowerShell scripts, and can be misused in malicious activity.
+      - 'Invoke-Expression'  # PowerShell's `Invoke-Expression` executes commands, often used in attacks to run obfuscated or dynamic code.
+      - 'New-Object System.Net.WebClient'  # This command is often used in malicious PowerShell scripts to download files from remote locations.
+  condition: obfuscated  # The detection condition is satisfied when the command line contains any of the obfuscation techniques listed.
+falsepositives:
+  - Advanced scripts by devs (rare)  # Acknowledge that developers may use obfuscation for legitimate purposes in advanced scripts, but this is rare.
+level: high  # Set the alert level to high as obfuscated PowerShell commands are often indicative of a malicious attempt.

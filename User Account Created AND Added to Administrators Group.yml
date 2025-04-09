@@ -1,0 +1,22 @@
+title: User Account Created AND Added to Administrators Group (Sysmon or Security Logs)  
+id: 5071789d-77a2-4bb9-bac5-20d22f4fdb74  
+description: Detects creation of a user account or elevation to administrator group, using either Sysmon or Windows Security events. Useful for environments with partial log sources.  
+logsource: 
+    category: process_creation  
+    product: windows  
+detection: 
+  sysmon_command_creation:  
+    EventID: 1  # Sysmon Event ID 1 is triggered for process creation, which includes command-line execution.
+    CommandLine|contains:  
+      - 'net user'  # This looks for the command 'net user', which is used to create or manage user accounts.
+      - 'net localgroup'  # This looks for the command 'net localgroup', which is used to add or remove users from groups.
+      - 'Administrators'  # This ensures that the command is specifically related to the "Administrators" group.
+  selection_security:  
+    EventID:  # The specific Event IDs we're interested in.
+      - 4720  # Event ID 4720 indicates the creation of a new user account.
+      - 4732  # Event ID 4732 indicates that a user was added to a local group (like Administrators).
+    GroupName|contains: 'Administrators'  # Checks if the event is related to the "Administrators" group.
+  condition: sysmon_command_creation or selection_security  
+level: medium  
+falsepositives:  
+  - Legitimate user management actions by IT administrators  

@@ -1,0 +1,23 @@
+title: Detection of PowerShell Clearing Windows Event Logs using wevtutil (Sysmon + Windows Logs)
+id: 55981dd0-ec8c-4de1-8414-8ff6c781789b
+description: Detects the use of PowerShell or other processes clearing Windows Event Logs via wevtutil to cover up malicious activities, using both Sysmon and Windows Event Logs.
+status: experimental
+logsource:
+  product: windows
+  category: process_creation  # Monitor process creation logs from Sysmon as well
+detection:
+  selection_sysmon:
+    EventID: 1  # Sysmon Event ID 1 indicates process creation
+    CommandLine|contains:
+      - 'wevtutil cl'  # Detect use of 'wevtutil cl' to clear event logs
+      - 'wevtutil el'  # Detect use of 'wevtutil el' to list event logs
+    Image|endswith: '\\powershell.exe'  # Monitor if PowerShell is being used
+  selection_windows:
+    EventID: 4104  # PowerShell script block logging event
+    CommandLine|contains:
+      - 'wevtutil cl'  # Detect use of 'wevtutil cl' to clear logs in PowerShell
+      - 'wevtutil el'  # Detect use of 'wevtutil el' to list logs in PowerShell
+  condition: selection_sysmon or selection_windows  # Rule triggers if either Sysmon or Windows Event Logs condition is met
+level: high
+falsepositives:
+  - Legitimate administrative tasks using PowerShell for log management or maintenance

@@ -1,0 +1,17 @@
+title: Suspicious Use of Curl to Download AnyDesk
+id: 36287932-29f5-4ffe-9cab-5e99054058ee
+status: experimental
+description: Detects suspicious use of curl.exe to attempt downloading AnyDesk installer from remote server.
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    Image|endswith: '\curl.exe' # Looks for processes using curl.exe (which is often used to download files).
+    CommandLine|contains:
+      - 'anydesk'  # Detects if the command line contains 'anydesk', indicating that the attacker trying to download AnyDesk.
+      - 'http' # Ensures the URL used for download is via HTTP or HTTPS, making it likely to be an internet-based download.
+  condition: selection # The condition for triggering the detection is if the above selection criteria are met.
+falsepositives:
+  - Developers or IT scripts downloading legitimate AnyDesk installs # Acknowledge that legitimate uses of curl to download AnyDesk (by developers or IT) may cause false positives.
+level: Low # Set the alert level as 'Low' to indicate moderate importance in terms of threat detection.

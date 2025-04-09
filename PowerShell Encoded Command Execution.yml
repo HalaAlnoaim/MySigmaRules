@@ -1,0 +1,18 @@
+title: PowerShell Encoded Command Execution
+id: 9d6d2413-26e1-42bd-b917-cd4d3400b9c3
+status: stable
+description: Detects use of PowerShell with encoded command line via -enc or FromBase64String
+logsource:
+  category: process_creation  
+  product: windows  
+detection:
+  encoded:
+    Image|endswith: '\powershell.exe'  # Looks for processes using PowerShell (powershell.exe) to execute commands.
+    CommandLine|contains:
+      - '-enc'  # Detects the presence of the '-enc' flag in the command line, which indicates that the command is encoded.
+      - 'FromBase64String'  # Looks for the use of the FromBase64String method, commonly used in PowerShell to decode base64-encoded strings.
+  condition: encoded  # The detection condition is met when either of the encoded command-line patterns is found.
+falsepositives:
+  - Admin scripts using obfuscation (rare)  # Acknowledge that admin scripts might use obfuscation occasionally, but this is rare.
+level: high  # Set the alert level to high because PowerShell encoded command execution is a strong indicator of malicious activity.
+ 
