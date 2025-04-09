@@ -1,0 +1,21 @@
+title: PowerShell Shellcode Injection via Windows API
+id: e0424c40-0716-4757-9394-b333df42e7e8
+status: experimental
+description: Detects PowerShell using VirtualAlloc, CreateThread, and similar API calls for memory injection techniques.
+ 
+logsource:
+  category: process_creation  
+  product: windows  
+ 
+detection:
+  memory_injection:
+    Image|endswith: '\powershell.exe'  # Looks for processes using PowerShell (powershell.exe) to execute commands.
+    CommandLine|contains:
+      - 'VirtualAlloc'  # Detects use of VirtualAlloc, a Windows API function used to allocate memory in the process.
+      - 'VirtualProtect'  # Detects use of VirtualProtect, another Windows API function used to change memory protection, typically to allow execution of shellcode.
+      - 'CreateThread'  # Detects use of CreateThread, used to create a new thread in the process, often to execute shellcode.
+      - 'PAGE_EXECUTE'  # Looks for the PAGE_EXECUTE flag, which is typically used to mark memory as executable for shellcode injection.
+  condition: memory_injection  # The detection condition is satisfied when any of the above memory injection techniques are used in PowerShell.
+falsepositives:
+  - Very rare in legit usage (mostly red team / malware)  # Acknowledge that these functions are rarely used in legitimate scenarios, mostly in red team exercises or malware attacks.
+level: critical  # Set the alert level to critical because memory injection techniques are a high-risk sign of malicious activity and can lead to full control of the system.
