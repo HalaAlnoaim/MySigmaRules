@@ -1,0 +1,19 @@
+title: Detection of LSASS Memory Dump Stored in Defender's Directory  
+id: 903b2a42-417a-4e60-b339-36891275d7f8 
+status: experimental 
+description: Detects LSASS memory dump activity stored in Defender's directory, bypassing Defender's protection  
+logsource:
+  category: file_creation  # The source category is file creation, meaning the rule looks for events related to file creation.
+  product: windows  
+detection:
+  selection:
+    Image|endswith: '\procdump.exe'  # Checks if the image (executable) being run is 'procdump.exe', a tool used to dump memory from a process.
+    CommandLine|contains: 'lsass.exe'  # Checks if the command line contains 'lsass.exe', meaning the dump is targeting the LSASS process, which contains sensitive information.
+    TargetFilename|contains: 'C:\Program Files\Windows Defender Advanced Threat Protection\'  # Checks if the dump file is being stored in Windows Defender's directory, often targeted by attackers to bypass Defender's protection.
+  condition: selection 
+  level: high 
+falsepositives:
+  - Legitimate use of procdump by administrators for troubleshooting  
+  - Antivirus or Defender-related processes using procdump for analysis  
+
+
