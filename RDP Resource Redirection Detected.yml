@@ -1,0 +1,26 @@
+title: RDP Resource Redirection Detected
+id: f700ee59-580b-43d7-82da-306b3cb3b1b7
+status: experimental
+description: Detects RDP sessions that utilize resource redirection to access victim files and sensitive data.
+logsource:
+  product: windows                
+  category: process_creation      
+detection:
+  # Look for RDP client being launched — mstsc.exe is the Microsoft Remote Desktop client.
+  selection:
+    Image|endswith: '\mstsc.exe'
+    # Look for specific command-line arguments that indicate resource redirection.
+    CommandLine|contains:
+      - 'drivestoredirect:s:*'         # Redirects all drives from client to RDP server
+      - 'redirectclipboard:i:1'        # Enables clipboard sharing
+      - 'redirectprinters:i:1'         # Redirects local printers
+      - 'redirectcomports:i:1'         # Redirects COM ports (e.g., serial devices)
+      - 'redirectsmartcards:i:1'       # Redirects smart card reader — could leak credentials
+      - 'redirectwebauthn:i:1'         # Redirects WebAuthn (used in 2FA/security keys)
+      - 'redirectposdevices:i:1'       # Redirects point-of-sale devices (used in retail environments)
+  condition: selection                 
+
+falsepositives:
+  - Legitimate RDP sessions where users intentionally enable resource redirection.
+    # not all redirection is malicious, but in phishing contexts it's very suspicious.
+level: high

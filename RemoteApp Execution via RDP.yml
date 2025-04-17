@@ -1,0 +1,20 @@
+title: RemoteApp Execution via RDP (Rogue RDP Technique)
+id: cd2a82c0-2861-49b6-a28a-646077088a2e
+status: experimental
+description: Detects execution of RDP sessions configured to use RemoteApp mode — commonly abused in phishing attacks to present attacker-controlled applications that masquerade as local programs.
+logsource:
+  product: windows                
+  category: process_creation      
+detection:
+  # Look for mstsc.exe — the Remote Desktop client
+  selection:
+    Image|endswith: '\mstsc.exe'
+    # Check command-line arguments for RemoteApp indicators
+    CommandLine|contains:
+      - 'remoteapplicationmode:i:1'              # Enables RemoteApp mode (shows only the app, not full desktop)
+      - 'remoteapplicationprogram:s:||'    # Shows specific app is being loaded, not full desktop
+  condition: selection
+falsepositives:
+  - Legitimate use of RemoteApp in enterprise environments
+    # Needs contextual analysis (who ran it? from where? was it expected?)
+level: high
