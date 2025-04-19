@@ -1,0 +1,25 @@
+title: Detect Suspicious Webhook Usage in Teams Messages
+id: 47747c17-a1e3-482e-8d77-eda11cef550f
+description: Detects suspicious Webhook requests or embedded data in Microsoft Teams messages that may indicate C2 communication or data exfiltration attempts, excluding the most common trusted external services.
+logsource:
+  product: microsoft_teams 
+  service: teams  
+detection:
+  selection:
+    Message:
+      - "Webhook"  # Looks for the word "Webhook" in messages, which may indicate communication with external servers
+      - "base64"  # Looks for Base64-encoded data, which might be used for exfiltrating data or hiding commands
+      - "content-type: application/json"  # Detects JSON content-type headers in Webhook requests, which might indicate structured data transfer
+      - "POST"  # Detects the use of POST method, commonly used in Webhooks
+  filter:
+    # Exclude trusted and commonly used Webhook sources:
+    - "slack.com"  # Slack Webhook: Slack uses Webhooks to send real-time notifications and updates to channels from external apps or systems.
+    - "jira.com"  # Jira Webhook: Jira uses Webhooks to send notifications about issues, projects, or changes to external systems like GitHub or Slack.
+    - "github.com"  # GitHub Webhook: GitHub uses Webhooks to notify external systems about code pushes, pull requests, and repository changes.
+    - "microsoft.com"  # Microsoft Webhook: Microsoft services like Azure or Teams use Webhooks for communication with external tools and services.
+    - "paypal.com"  # PayPal Webhook: PayPal uses Webhooks to send notifications about transactions, payments, and account updates to external services.
+    - "stripe.com"  # Stripe Webhook: Stripe uses Webhooks to notify external systems about payments, chargebacks, or subscription events in real-time.
+  condition: selection and not filter  # Excludes the most common trusted external services like Slack, Jira, GitHub, Microsoft, PayPal, Stripe
+level: high  # High priority, as suspicious Webhook usage may indicate C2 or data exfiltration
+falsepositives:
+  - Legitimate Webhook usage in integrations or automation systems

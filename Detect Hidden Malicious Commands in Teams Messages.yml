@@ -1,0 +1,19 @@
+title: Detect Hidden Malicious Commands in Teams Messages
+id: 93706109-95ab-48c9-a5b8-d2d1f265489e
+description: Detects potentially malicious hidden commands embedded within Microsoft Teams messages by examining hidden HTML tags such as <span>, aria-label, display:none, and other concealed attributes used to hide the commands.
+logsource:
+  product: microsoft_teams  
+  service: teams  
+detection:
+  selection:
+    Message:
+      - "aria-label"  # Looks for the presence of the 'aria-label' attribute, often used to hide commands or metadata in messages
+      - "<span>"  # Searches for the <span> tag, which may contain hidden or malicious code
+      - "<span[^>]* aria-label=\"([^\"]*)\"[^>]*></span>"  # Looks for <span> tags that contain an aria-label attribute, which is often used to store hidden commands or metadata within the message
+      - "display:none"  # Searches for the 'display:none' style, indicating that the content is hidden in the message
+      - "data-*"  # Detects any 'data-*' attributes, which can be used to hide or store information that is not visible to users
+      - "hidden"  # Detects the 'hidden' attribute, another way to hide content in HTML
+      - "style=\"display:none\""  # Specifically checks for inline CSS that hides content using 'display:none'
+  condition: selection  
+level: high
+falsepositives: Legitimate use of <span>, aria-label, or display:none for accessibility or formatting
